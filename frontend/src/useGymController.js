@@ -7,7 +7,7 @@ export default function useGymController() {
 
   useEffect(() => {
     wsRef.current = createWsClient((msg) => {
-      if (msg.type === "step") {
+      if (msg.type === "step" || msg.type === "reset") {
         setStepData(msg.data); 
       }
     });
@@ -18,6 +18,7 @@ export default function useGymController() {
 
   return {
     stepData,
-    step: (data) => wsRef.current.send({ type: "step", data }),
+    step: () => wsRef.current.send({ type: "step" }),
+    reset: () => wsRef.current.send({ type: "reset" }),
   };
 }

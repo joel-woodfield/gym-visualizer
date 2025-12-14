@@ -1,8 +1,8 @@
-export default function FrameViewer() {
+export default function FrameViewer({ frame }) {
   return (
     <>
       <img 
-        src={null}
+        src={frame}
         alt="Frame Placeholder" 
       />
     </>

@@ -6,7 +6,7 @@ import "./App.css";
 
 
 export default function App() {
-  const { stepData, step } = useGymController();
+  const { stepData, step, reset } = useGymController();
 
   return (
     <>
@@ -14,7 +14,8 @@ export default function App() {
       <TopBar stepData={stepData} />
       <MainLayout stepData={stepData} />
       <BottomBar
-        onStep={() => step(stepData)}
+        onStep={step}
+        onReset={reset}
       />
     </>
   );

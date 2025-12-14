@@ -3,9 +3,7 @@ export default function TopBar( {stepData} ) {
     <div>
       <p>Current Step: {stepData?.stepIdx}</p>
       <p>Current Episode Return: {stepData?.episodeReturn}</p>
-      
-      <p>Current Episode: {stepData?.episodeIdx}</p>
-      <p>Average Episode Return: {stepData?.avgEpisodeReturn}</p>
+      <p>Done: {stepData?.done ? "Yes" : "No"}</p>
     </div>
   )
 }
