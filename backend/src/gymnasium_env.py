@@ -13,6 +13,14 @@ def policy(obs: np.ndarray, num_actions: int) -> int:
     return action"""
 
 
+class PolicyError(Exception):
+    pass
+
+
+class EnvironmentError(Exception):
+    pass
+
+
 class UserPolicy:
     def __init__(self, code: str) -> None:
         self.set_code(code)
@@ -34,16 +42,23 @@ class GymnasiumEnv:
         self.policy.set_code(policy)
 
     def init_env(self, env_id: str) -> None:
-        self._env = gym.make(env_id, render_mode="rgb_array")
+        try:
+            self._env = gym.make(env_id, render_mode="rgb_array")
+        except Exception as e:
+            raise EnvironmentError(f"Error initializing environment with id '{env_id}': {e}")
+
         self._current_step = 0
         self._episode_return = 0.
         self.has_reset = False
         self._prev_obs = None
 
     def reset(self) -> tuple[list[float], dict[str, Any]]:
-        observation, info = self._env.reset()
-        self._prev_obs = observation
-        observation = observation.tolist()
+        try:
+            observation, info = self._env.reset()
+            self._prev_obs = observation
+            observation = observation.tolist()
+        except Exception as e:
+            raise EnvironmentError(f"Error resetting environment: {e}")
 
         self._current_step = 0
         self._episode_return = 0.
@@ -54,23 +69,36 @@ class GymnasiumEnv:
 
     def step(self) -> tuple[list[float], SupportsFloat, bool, bool, dict[str, Any]]:
         if self._prev_obs is None:
-            action = self._env.action_space.sample()
+            try:
+                action = self._env.action_space.sample()
+            except Exception as e:
+                raise EnvironmentError(f"Error sampling action from environment: {e}")
         else:
-            action = self.policy.act(self._prev_obs, self._env.action_space.n)
+            try:
+                action = self.policy.act(self._prev_obs, self._env.action_space.n)
+            except Exception as e:
+                raise PolicyError(f"Error in user-defined policy: {e}")
 
-        observation, reward, terminated, truncated, info = self._env.step(action)
-        self._prev_obs = observation
-        observation = observation.tolist()
+        try:
+            observation, reward, terminated, truncated, info = self._env.step(action)
+            self._prev_obs = observation
+            observation = observation.tolist()
+        except Exception as e:
+            raise EnvironmentError(f"Error stepping environment: {e}")
 
         self._current_step += 1
         self._episode_return += cast(float, reward)
         info["episode_return"] = self._episode_return
         info["current_step"] = self._current_step
-        info["action"] = action
+        info["action"] = int(action)
         return observation, reward, terminated, truncated, info
 
     def render(self) -> str:
-        frame = cast(np.ndarray, self._env.render())
+        try:
+            frame = cast(np.ndarray, self._env.render())
+        except Exception as e:
+            raise EnvironmentError(f"Error rendering environment: {e}")
+
         frame = Image.fromarray(frame)
         buf = BytesIO()
         frame.save(buf, format="PNG")

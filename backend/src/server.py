@@ -4,7 +4,7 @@ from typing import Any
 
 from websockets.asyncio.server import serve, ServerConnection
 
-from gymnasium_env import GymnasiumEnv
+from gymnasium_env import GymnasiumEnv, EnvironmentError, PolicyError
 
 
 class GymController:
@@ -125,11 +125,35 @@ async def handler(websocket: ServerConnection) -> None:
 
     controller = GymController(send)
 
-    # Reset env on new connection and send initial data to client
-    await controller.reset()
+    try:
+        # Reset env on new connection and send initial data to client
+        await controller.reset()
 
-    async for message in websocket:
-        await controller.handle_message(json.loads(message))
+        async for message in websocket:
+            try:
+                await controller.handle_message(json.loads(message))
+            except PolicyError as e:
+                await send({
+                    "type": "error",
+                    "data": str(e),
+                })
+            except EnvironmentError as e:
+                await send({
+                    "type": "error",
+                    "data": str(e),
+                })
+
+    except PolicyError as e:
+        await send({
+            "type": "error",
+            "data": str(e),
+        })
+    except EnvironmentError as e:
+        await send({
+            "type": "error",
+            "data": str(e),
+        })
+    
 
 
 async def main() -> None:
