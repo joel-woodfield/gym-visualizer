@@ -125,6 +125,9 @@ async def handler(websocket: ServerConnection) -> None:
 
     controller = GymController(send)
 
+    # Reset env on new connection and send initial data to client
+    await controller.reset()
+
     async for message in websocket:
         await controller.handle_message(json.loads(message))
 
