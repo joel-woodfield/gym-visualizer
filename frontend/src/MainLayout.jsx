@@ -4,7 +4,7 @@ import Editor from "./Editor.jsx"
 
 export default function MainLayout({ stepData }) {
   return (
-    <div>
+    <div className="main-layout">
       <FrameViewer frame={stepData?.frame ? `data:image/png;base64,${stepData?.frame}` : null}/>
       <ObsViewer observation={stepData?.observation} />
       <Editor />

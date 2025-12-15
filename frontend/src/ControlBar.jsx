@@ -1,6 +1,6 @@
-export default function BottomBar({ onStep, onPlay, onPause, onReset }) {
+export default function ControlBar({ onStep, onPlay, onPause, onReset }) {
   return (
-    <div>
+    <div className="control-bar">
       <button onClick={onStep}>Step</button>
       <button onClick={onPlay}>Play</button>
       <button onClick={onPause}>Pause</button>

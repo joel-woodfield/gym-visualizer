@@ -1,5 +1,5 @@
-import TopBar from "./TopBar.jsx";
-import BottomBar from "./BottomBar.jsx";
+import StatusBar from "./StatusBar.jsx";
+import ControlBar from "./ControlBar.jsx";
 import MainLayout from "./MainLayout.jsx";
 import useGymController from "./useGymController.js";
 import "./App.css";
@@ -10,11 +10,9 @@ export default function App() {
 
   return (
     <>
-      <h1>Gymnasium Visualizer</h1>
-      <h4>Status: {wsConnected ? "Connected" : "Disconnected" }</h4>
-      <TopBar stepData={stepData} />
+      <StatusBar stepData={stepData} connected={wsConnected} />
       <MainLayout stepData={stepData} />
-      <BottomBar
+      <ControlBar
         onStep={step}
         onPlay={play}
         onPause={pause}
