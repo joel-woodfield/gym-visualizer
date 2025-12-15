@@ -6,12 +6,12 @@ import "./App.css";
 
 
 export default function App() {
-  const { wsConnected, stepData, step, play, pause, reset } = useGymController();
+  const { wsConnected, stepData, step, play, pause, reset, submitPolicy } = useGymController();
 
   return (
     <>
       <StatusBar stepData={stepData} connected={wsConnected} />
-      <MainLayout stepData={stepData} />
+      <MainLayout stepData={stepData} onCodeSubmit={submitPolicy} />
       <ControlBar
         onStep={step}
         onPlay={play}

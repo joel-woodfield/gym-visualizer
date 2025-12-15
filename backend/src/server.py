@@ -55,6 +55,7 @@ class GymController:
             "reward": reward,
             "done": terminated or truncated,
             "episodeReturn": info["episode_return"],
+            "action": info["action"],
         }
         
     def _reset_once(self) -> dict[str, Any]:
@@ -81,6 +82,9 @@ class GymController:
         except asyncio.CancelledError:
             pass
 
+    def set_policy(self, code: str) -> None:
+        self._env.set_policy(code)
+
     async def handle_message(
         self, 
         message: dict[str, Any],
@@ -95,6 +99,9 @@ class GymController:
             self.start_play()
         elif msg_type == "pause":
             self.stop_play()
+        elif msg_type == "submitPolicy":
+            data = message.get("data")
+            self.set_policy(data)
         else:
             print(f"Unknown message type: {msg_type}")
 

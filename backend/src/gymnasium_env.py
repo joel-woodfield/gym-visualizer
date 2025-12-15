@@ -6,6 +6,25 @@ import gymnasium as gym
 import numpy as np
 from PIL import Image
 
+
+DEFAULT_POLICY = """import numpy as np
+def policy(obs: np.ndarray, num_actions: int) -> int:
+    action = np.random.randint(0, num_actions)
+    return action"""
+
+
+class UserPolicy:
+    def __init__(self, code: str) -> None:
+        self.set_code(code)
+    
+    def act(self, obs: np.ndarray, num_actions: int) -> int:
+        return self._name_space["policy"](obs, num_actions)
+
+    def set_code(self, code: str) -> None:
+        self._name_space = {}
+        exec(code, self._name_space)
+
+
 class GymnasiumEnv:
     def __init__(self):
         self._env = gym.make("CartPole-v1", render_mode="rgb_array")
@@ -14,8 +33,16 @@ class GymnasiumEnv:
 
         self.has_reset = False
 
+        self.policy = UserPolicy(DEFAULT_POLICY)
+
+        self._prev_obs = None
+
+    def set_policy(self, policy: str) -> None:
+        self.policy.set_code(policy)
+
     def reset(self) -> tuple[list[float], dict[str, Any]]:
         observation, info = self._env.reset()
+        self._prev_obs = observation
         observation = observation.tolist()
 
         self._current_step = 0
@@ -26,15 +53,20 @@ class GymnasiumEnv:
         return observation, info
 
     def step(self) -> tuple[list[float], SupportsFloat, bool, bool, dict[str, Any]]:
-        action = self._env.action_space.sample()
+        if self._prev_obs is None:
+            action = self._env.action_space.sample()
+        else:
+            action = self.policy.act(self._prev_obs, self._env.action_space.n)
 
         observation, reward, terminated, truncated, info = self._env.step(action)
+        self._prev_obs = observation
         observation = observation.tolist()
 
         self._current_step += 1
         self._episode_return += cast(float, reward)
         info["episode_return"] = self._episode_return
         info["current_step"] = self._current_step
+        info["action"] = action
         return observation, reward, terminated, truncated, info
 
     def render(self) -> str:
