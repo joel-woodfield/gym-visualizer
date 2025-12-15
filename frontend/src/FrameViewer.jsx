@@ -3,7 +3,7 @@ export default function FrameViewer({ frame }) {
     <>
       <img 
         src={frame}
-        alt="Frame Placeholder" 
+        alt="Frame" 
       />
     </>
   )

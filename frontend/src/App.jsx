@@ -6,11 +6,12 @@ import "./App.css";
 
 
 export default function App() {
-  const { stepData, step, reset } = useGymController();
+  const { wsConnected, stepData, step, reset } = useGymController();
 
   return (
     <>
       <h1>Gymnasium Visualizer</h1>
+      <h4>Status: {wsConnected ? "Connected" : "Disconnected" }</h4>
       <TopBar stepData={stepData} />
       <MainLayout stepData={stepData} />
       <BottomBar

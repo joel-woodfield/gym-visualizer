@@ -1,7 +1,19 @@
 const URL = "ws://localhost:8765/ws";
 
-export default function createWsClient(onMessage) {
+export default function createWsClient(onMessage, onOpen, onClose, onError) {
   const ws = new WebSocket(URL);
+
+  ws.onopen = () => {
+    onOpen();
+  }
+
+  ws.onclose = () => {
+    onClose();
+  }
+
+  ws.onerror = (error) => {
+    onError();
+  }
 
   ws.onmessage = (event) => {
     const msg = JSON.parse(event.data);
