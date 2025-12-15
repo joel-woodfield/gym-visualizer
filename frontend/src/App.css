@@ -22,3 +22,7 @@
   justify-content: space-evenly;
   border: 1px solid red;
 }
+
+.code-editor {
+  border: 1px solid red;
+}
