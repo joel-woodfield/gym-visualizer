@@ -6,7 +6,7 @@ export default function MainLayout({ stepData }) {
   return (
     <div className="main-layout">
       <FrameViewer frame={stepData?.frame ? `data:image/png;base64,${stepData?.frame}` : null}/>
-      <ObsViewer observation={stepData?.observation} />
+      <ObsViewer obs={stepData?.observation} />
       <CodeEditor />
     </div>
   );

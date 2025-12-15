@@ -26,3 +26,9 @@
 .code-editor {
   border: 1px solid red;
 }
+
+.obs-viewer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
