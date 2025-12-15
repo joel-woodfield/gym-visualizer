@@ -46,5 +46,6 @@ export default function useGymController() {
     pause: () => wsRef.current.send({ type: "pause" }),
     reset: () => wsRef.current.send({ type: "reset" }),
     submitPolicy: (policyProgram) => wsRef.current.send({ type: "submitPolicy", data: policyProgram }),
+    submitEnv: (envId) => wsRef.current.send({ type: "submitEnv", data: envId }),
   };
 }

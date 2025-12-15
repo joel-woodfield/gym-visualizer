@@ -6,7 +6,7 @@ import "./App.css";
 
 
 export default function App() {
-  const { wsConnected, stepData, step, play, pause, reset, submitPolicy } = useGymController();
+  const { wsConnected, stepData, step, play, pause, reset, submitPolicy, submitEnv } = useGymController();
 
   return (
     <>
@@ -17,6 +17,7 @@ export default function App() {
         onPlay={play}
         onPause={pause}
         onReset={reset}
+        onEnvSubmit={submitEnv}
       />
     </>
   );

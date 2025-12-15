@@ -26,19 +26,19 @@ class UserPolicy:
 
 
 class GymnasiumEnv:
-    def __init__(self):
-        self._env = gym.make("CartPole-v1", render_mode="rgb_array")
-        self._current_step = 0
-        self._episode_return = 0.
-
-        self.has_reset = False
-
+    def __init__(self, env_id: str = "CartPole-v1") -> None:
+        self.init_env(env_id)
         self.policy = UserPolicy(DEFAULT_POLICY)
-
-        self._prev_obs = None
 
     def set_policy(self, policy: str) -> None:
         self.policy.set_code(policy)
+
+    def init_env(self, env_id: str) -> None:
+        self._env = gym.make(env_id, render_mode="rgb_array")
+        self._current_step = 0
+        self._episode_return = 0.
+        self.has_reset = False
+        self._prev_obs = None
 
     def reset(self) -> tuple[list[float], dict[str, Any]]:
         observation, info = self._env.reset()

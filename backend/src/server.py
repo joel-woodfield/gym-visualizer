@@ -83,7 +83,16 @@ class GymController:
             pass
 
     def set_policy(self, code: str) -> None:
+        if self._playing:
+            self.stop_play()
+
         self._env.set_policy(code)
+
+    def set_env_id(self, env_id: str) -> None:
+        if self._playing:
+            self.stop_play()
+
+        self._env.init_env(env_id)
 
     async def handle_message(
         self, 
@@ -102,6 +111,10 @@ class GymController:
         elif msg_type == "submitPolicy":
             data = message.get("data")
             self.set_policy(data)
+        elif msg_type == "submitEnv":
+            data = message.get("data")
+            self.set_env_id(data)
+            await self.reset()
         else:
             print(f"Unknown message type: {msg_type}")
 
