@@ -8,12 +8,42 @@ from gymnasium_env import GymnasiumEnv
 
 
 class GymController:
-    def __init__(self) -> None:
+    def __init__(self, send: callable) -> None:
         self._env = GymnasiumEnv()
 
-    def step(self) -> dict[str, Any]:
+        self._send = send
+        self._playing = False
+        self._play_task: asyncio.Task[None] | None = None
+
+    async def _emit_state(self, type: str, data: dict[str, Any]) -> None:
+        message = {"type": type, "data": data}
+        await self._send(message)
+
+    async def step(self) -> None:
+        data = self._step_once()
+        await self._emit_state("step", data)
+
+    async def reset(self) -> None:
+        data = self._reset_once()
+        await self._emit_state("reset", data)
+
+    def start_play(self) -> None:
+        if not self._playing:
+            self._playing = True
+            self._play_task = asyncio.create_task(
+                self.play_loop(dt=0.1)
+            )
+
+    def stop_play(self) -> None:
+        if self._playing:
+            self._playing = False
+            if self._play_task:
+                self._play_task.cancel()
+                self._play_task = None
+
+    def _step_once(self) -> dict[str, Any]:
         if not self._env.has_reset:
-            return self.reset()
+            return self._reset_once()
 
         observation, reward, terminated, truncated, info = self._env.step()
         frame = self._env.render()
@@ -27,7 +57,7 @@ class GymController:
             "episodeReturn": info["episode_return"],
         }
         
-    def reset(self) -> dict[str, Any]:
+    def _reset_once(self) -> dict[str, Any]:
         obs, info = self._env.reset()
         frame = self._env.render()
         return {
@@ -39,29 +69,44 @@ class GymController:
             "episodeReturn": info["episode_return"],
         }
 
-    def handle_message(self, message: dict[str, Any]) -> dict[str, Any]:
+    async def play_loop(self, dt: float = 0.) -> None:
+        try:
+            while self._playing:
+                data = self._step_once()
+                await self._emit_state("step", data)
+
+                if dt > 0:
+                    await asyncio.sleep(dt)
+
+        except asyncio.CancelledError:
+            pass
+
+    async def handle_message(
+        self, 
+        message: dict[str, Any],
+    ) -> dict[str, Any]:
         msg_type = message.get("type")
+
         if msg_type == "step":
-            data = self.step()
-            return {"type": "step", "data": data}
+            await self.step()
         elif msg_type == "reset":
-            data = self.reset()
-            return {"type": "reset", "data": data}
+            await self.reset()
+        elif msg_type == "play":
+            self.start_play()
+        elif msg_type == "pause":
+            self.stop_play()
         else:
-            return {"error": "Unknown message type"}
+            print(f"Unknown message type: {msg_type}")
 
 
 async def handler(websocket: ServerConnection) -> None:
-    controller = GymController()
+    async def send(message: dict[str, Any]) -> None:
+        await websocket.send(json.dumps(message))
 
-    while True:
-        message = await websocket.recv()
-        data = json.loads(message)
+    controller = GymController(send)
 
-        response_data = controller.handle_message(data)
-        response = json.dumps(response_data)
-
-        await websocket.send(response)
+    async for message in websocket:
+        await controller.handle_message(json.loads(message))
 
 
 async def main() -> None:

@@ -6,7 +6,7 @@ import "./App.css";
 
 
 export default function App() {
-  const { wsConnected, stepData, step, reset } = useGymController();
+  const { wsConnected, stepData, step, play, pause, reset } = useGymController();
 
   return (
     <>
@@ -16,6 +16,8 @@ export default function App() {
       <MainLayout stepData={stepData} />
       <BottomBar
         onStep={step}
+        onPlay={play}
+        onPause={pause}
         onReset={reset}
       />
     </>
