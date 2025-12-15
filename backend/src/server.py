@@ -133,22 +133,26 @@ async def handler(websocket: ServerConnection) -> None:
             try:
                 await controller.handle_message(json.loads(message))
             except PolicyError as e:
+                print(e)
                 await send({
                     "type": "error",
                     "data": str(e),
                 })
             except EnvironmentError as e:
+                print(e)
                 await send({
                     "type": "error",
                     "data": str(e),
                 })
 
     except PolicyError as e:
+        print(e)
         await send({
             "type": "error",
             "data": str(e),
         })
     except EnvironmentError as e:
+        print(e)
         await send({
             "type": "error",
             "data": str(e),

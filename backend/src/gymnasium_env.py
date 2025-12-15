@@ -6,6 +6,8 @@ import gymnasium as gym
 import numpy as np
 from PIL import Image
 
+import ocatari_envs  # register the OCatari environments
+
 
 DEFAULT_POLICY = """import numpy as np
 def policy(obs: np.ndarray, num_actions: int) -> int:
