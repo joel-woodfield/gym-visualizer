@@ -22,8 +22,8 @@ export default function CodeEditor({ onCodeSubmit }) {
   return (
     <div className="code-editor">
       <Editor 
-        height="400px" 
-        width="400px" 
+        height="500px" 
+        width="500px" 
         defaultLanguage="python" 
         defaultValue={DEFAULT_CODE}
         options={OPTIONS}

@@ -11,6 +11,12 @@ export default function ControlBar({ onStep, onPlay, onPause, onReset, onEnvSubm
 
   return (
     <div className="control-bar">
+      <div className="playback-controls">
+        <button onClick={onPlay} className="control-button">▶</button>
+        <button onClick={onPause} className="control-button">⏸</button>
+        <button onClick={onReset} className="control-button">■</button>
+        <button onClick={onStep} className="control-button">»</button>
+      </div>
       <form onSubmit={handleSubmit}>
         <label>env-id: </label>
         <input 
@@ -20,10 +26,6 @@ export default function ControlBar({ onStep, onPlay, onPause, onReset, onEnvSubm
         />
         <button type="submit">Submit</button>
       </form>
-      <button onClick={onStep}>Step</button>
-      <button onClick={onPlay}>Play</button>
-      <button onClick={onPause}>Pause</button>
-      <button onClick={onReset}>Reset</button>
     </div>
   );
 }
