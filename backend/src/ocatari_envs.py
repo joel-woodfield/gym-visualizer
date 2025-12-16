@@ -144,35 +144,35 @@ class RelationalEnv(OCAtari):
 register(
     id="ocatari/AirRaid",
     entry_point="ocatari_envs:RelationalEnv",
-    kwargs={"env_id": "AirRaidNoFrameskip-v4", "type": "relative"},
+    kwargs={"env_id": "AirRaidNoFrameskip-v4", "type": "relative_indicator"},
 )
 
 
 register(
     id="ocatari/Amidar",
     entry_point="ocatari_envs:RelationalEnv",
-    kwargs={"env_id": "AmidarNoFrameskip-v4", "type": "relative"},
+    kwargs={"env_id": "AmidarNoFrameskip-v4", "type": "relative_indicator"},
 )
 
 
 register(
     id="ocatari/Asterix",
     entry_point="ocatari_envs:RelationalEnv",
-    kwargs={"env_id": "AsterixNoFrameskip-v4", "type": "relative"},
+    kwargs={"env_id": "AsterixNoFrameskip-v4", "type": "relative_indicator"},
 )
 
 
 register(
     id="ocatari/Bowling",
     entry_point="ocatari_envs:RelationalEnv",
-    kwargs={"env_id": "BowlingNoFrameskip-v4", "type": "relative"},
+    kwargs={"env_id": "BowlingNoFrameskip-v4", "type": "relative_indicator"},
 )
 
 
 register(
     id="ocatari/Boxing",
     entry_point="ocatari_envs:RelationalEnv",
-    kwargs={"env_id": "BoxingNoFrameskip-v4", "type": "relative"},
+    kwargs={"env_id": "BoxingNoFrameskip-v4", "type": "relative_indicator"},
 )
 
 

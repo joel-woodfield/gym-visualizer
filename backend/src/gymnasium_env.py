@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image
 
 import ocatari_envs  # register the OCatari environments
+from observation_formatting import format_obs
 
 
 DEFAULT_POLICY = """import numpy as np
@@ -58,7 +59,8 @@ class GymnasiumEnv:
         try:
             observation, info = self._env.reset()
             self._prev_obs = observation
-            observation = observation.tolist()
+            observation = format_obs(self._env.spec.id, observation)
+
         except Exception as e:
             raise EnvironmentError(f"Error resetting environment: {e}")
 
@@ -84,7 +86,8 @@ class GymnasiumEnv:
         try:
             observation, reward, terminated, truncated, info = self._env.step(action)
             self._prev_obs = observation
-            observation = observation.tolist()
+            observation = format_obs(self._env.spec.id, observation)
+
         except Exception as e:
             raise EnvironmentError(f"Error stepping environment: {e}")
 
@@ -93,6 +96,7 @@ class GymnasiumEnv:
         info["episode_return"] = self._episode_return
         info["current_step"] = self._current_step
         info["action"] = int(action)
+
         return observation, reward, terminated, truncated, info
 
     def render(self) -> str:
