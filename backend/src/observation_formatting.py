@@ -23,6 +23,15 @@ FORMATS = {
             "Missile-2",
         ],
         "type": "relative_indicator",
+    },
+    "CartPole-v1": {
+        "objects": [
+            "x",
+            "v",
+            "theta",
+            "omega",
+        ],
+        "type": "regular",
     }
 }
 
@@ -44,6 +53,11 @@ def format_obs(env_id: str, obs: np.ndarray) -> list[str]:
                 new.append(f"{object_names[i]}-x: {x}")
                 new.append(f"{object_names[i]}-y: {y}")
                 new.append(f"{object_names[i]}-e: {indicator}")
+        elif FORMATS[env_id]["type"] == "regular":
+            object_names = FORMATS[env_id]["objects"]
+            for i, name in enumerate(object_names):
+                val = obs[i]
+                new.append(f"{name}: {val:.2f}")
         else:
             raise NotImplementedError
 
