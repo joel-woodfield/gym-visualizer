@@ -24,6 +24,8 @@ class GymController:
         await self._emit_state("step", data)
 
     async def reset(self) -> None:
+        self.stop_play()
+
         data = self._reset_once()
         await self._emit_state("reset", data)
 
