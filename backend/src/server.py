@@ -1,23 +1,25 @@
 import asyncio
-import json
 from typing import Any
 
-from websockets.asyncio.server import serve, ServerConnection
-
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.staticfiles import StaticFiles
 from gymnasium_env import GymnasiumEnv, EnvironmentError, PolicyError
+import uvicorn
+
+app = FastAPI()
+PORT = 8765
 
 
 class GymController:
-    def __init__(self, send: callable) -> None:
+    def __init__(self, websocket: WebSocket) -> None:
         self._env = GymnasiumEnv()
-
-        self._send = send
+        self._websocket = websocket
         self._playing = False
         self._play_task: asyncio.Task[None] | None = None
 
     async def _emit_state(self, type: str, data: dict[str, Any]) -> None:
-        message = {"type": type, "data": data}
-        await self._send(message)
+        """Sends a JSON message to the client."""
+        await self._websocket.send_json({"type": type, "data": data})
 
     async def step(self) -> None:
         data = self._step_once()
@@ -25,7 +27,6 @@ class GymController:
 
     async def reset(self) -> None:
         self.stop_play()
-
         data = self._reset_once()
         await self._emit_state("reset", data)
 
@@ -77,29 +78,26 @@ class GymController:
             while self._playing:
                 data = self._step_once()
                 await self._emit_state("step", data)
-
                 if dt > 0:
                     await asyncio.sleep(dt)
-
         except asyncio.CancelledError:
             pass
+        except Exception as e:
+            # Handle potential connection issues during background loop
+            print(f"Error in play_loop: {e}")
+            self.stop_play()
 
     def set_policy(self, code: str) -> None:
         if self._playing:
             self.stop_play()
-
         self._env.set_policy(code)
 
     def set_env_id(self, env_id: str) -> None:
         if self._playing:
             self.stop_play()
-
         self._env.init_env(env_id)
 
-    async def handle_message(
-        self, 
-        message: dict[str, Any],
-    ) -> dict[str, Any]:
+    async def handle_message(self, message: dict[str, Any]) -> None:
         msg_type = message.get("type")
 
         if msg_type == "step":
@@ -111,61 +109,41 @@ class GymController:
         elif msg_type == "pause":
             self.stop_play()
         elif msg_type == "submitPolicy":
-            data = message.get("data")
-            self.set_policy(data)
+            self.set_policy(message.get("data"))
         elif msg_type == "submitEnv":
-            data = message.get("data")
-            self.set_env_id(data)
+            self.set_env_id(message.get("data"))
             await self.reset()
         else:
             print(f"Unknown message type: {msg_type}")
 
 
-async def handler(websocket: ServerConnection) -> None:
-    async def send(message: dict[str, Any]) -> None:
-        await websocket.send(json.dumps(message))
-
-    controller = GymController(send)
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    controller = GymController(websocket)
 
     try:
-        # Reset env on new connection and send initial data to client
         await controller.reset()
 
-        async for message in websocket:
+        while True:
+            data = await websocket.receive_json()
             try:
-                await controller.handle_message(json.loads(message))
-            except PolicyError as e:
+                await controller.handle_message(data)
+            except (PolicyError, EnvironmentError) as e:
                 print(e)
-                await send({
-                    "type": "error",
-                    "data": str(e),
-                })
-            except EnvironmentError as e:
-                print(e)
-                await send({
-                    "type": "error",
-                    "data": str(e),
-                })
+                await websocket.send_json({"type": "error", "data": str(e)})
 
-    except PolicyError as e:
-        print(e)
-        await send({
-            "type": "error",
-            "data": str(e),
-        })
-    except EnvironmentError as e:
-        print(e)
-        await send({
-            "type": "error",
-            "data": str(e),
-        })
-    
+    except WebSocketDisconnect:
+        print("Client disconnected")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+    finally:
+        controller.stop_play()
 
-
-async def main() -> None:
-    async with serve(handler, "", 8765) as server:
-        await server.serve_forever()
+app.mount("/", StaticFiles(directory="../frontend/dist", html=True), name="frontend")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    print(f"Visit http://localhost:{PORT}")
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
+

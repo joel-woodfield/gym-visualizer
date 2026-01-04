@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+
+numpy
+
+gymnasium[atari, box2d, classic-control]
+
+ocatari

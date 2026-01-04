@@ -1,0 +1,18 @@
+# Dependency folders (The biggest space eaters)
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Git history (Not needed inside the container)
+.git
+.gitignore
+
+# Build outputs from your local machine
+dist/
+build/
+
+# OS trash
+.DS_Store
+Thumbs.db
