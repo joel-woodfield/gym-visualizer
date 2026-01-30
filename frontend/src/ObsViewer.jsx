@@ -1,12 +1,10 @@
 export default function ObsViewer({ obs }) {
   return (
-    <div className="obs-viewer">
-      <h3>Observations</h3>
-
-      <div className="obs-list">
+    <div className="min-h-0 overflow-auto">
+      <div className="text-sm font-mono">
         {obs?.map((value, index) => (
           <div key={index} className="obs-item">
-            {index}: {value}
+            {index} -> {value}
           </div>
         ))}
       </div>

@@ -124,7 +124,7 @@ class RelationalEnv(OCAtari):
             return np.array(self._obs_buffer).ravel()
 
     def reset(self, **kwargs):
-        _, info = super().reset(**kwargs)
+        _, info = super().reset(seed=np.random.randint(0, 1e6))
         self._obs_buffer.clear()
         for _ in range(self._obs_buffer.maxlen):
             self.update_obs_buffer()

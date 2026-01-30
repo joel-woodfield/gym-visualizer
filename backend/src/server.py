@@ -143,7 +143,7 @@ async def websocket_endpoint(websocket: WebSocket):
     finally:
         controller.stop_play()
 
-# app.mount("/", StaticFiles(directory="../frontend/dist", html=True), name="frontend")
+app.mount("/", StaticFiles(directory="../frontend/dist", html=True), name="frontend")
 
 
 if __name__ == "__main__":
