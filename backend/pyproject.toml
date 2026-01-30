@@ -1,0 +1,11 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "gymnasium[accept-rom-license,atari]>=1.2.3",
+    "ocatari>=2.2.1",
+    "websockets>=16.0",
+]
