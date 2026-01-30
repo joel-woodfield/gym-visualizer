@@ -30,11 +30,13 @@ class GymController:
         data = self._reset_once()
         await self._emit_state("reset", data)
 
-    def start_play(self) -> None:
+    def start_play(self, fps: int) -> None:
+        dt = 1.0 / fps
+
         if not self._playing:
             self._playing = True
             self._play_task = asyncio.create_task(
-                self.play_loop(dt=0.1)
+                self.play_loop(dt=dt)
             )
 
     def stop_play(self) -> None:
@@ -105,7 +107,8 @@ class GymController:
         elif msg_type == "reset":
             await self.reset()
         elif msg_type == "play":
-            self.start_play()
+            fps = int(message.get("fps", 60))
+            self.start_play(fps)
         elif msg_type == "pause":
             self.stop_play()
         elif msg_type == "submitPolicy":
@@ -140,7 +143,7 @@ async def websocket_endpoint(websocket: WebSocket):
     finally:
         controller.stop_play()
 
-app.mount("/", StaticFiles(directory="../frontend/dist", html=True), name="frontend")
+# app.mount("/", StaticFiles(directory="../frontend/dist", html=True), name="frontend")
 
 
 if __name__ == "__main__":

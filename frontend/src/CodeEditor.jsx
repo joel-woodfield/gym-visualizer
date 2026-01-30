@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Editor from "@monaco-editor/react";
 
+import Button from "./ui/Button";
 
 const OPTIONS = {
   readOnly: false,
@@ -20,14 +21,17 @@ export default function CodeEditor({ onCodeSubmit }) {
   const [code, setCode] = useState(DEFAULT_CODE);
 
   return (
-    <div className="code-editor">
-      <Editor 
-        defaultLanguage="python" 
-        defaultValue={DEFAULT_CODE}
-        options={OPTIONS}
-        onChange={(value) => setCode(value)}
-      />
-      <button onClick={() => onCodeSubmit(code)}>Submit code</button>
+    <div className="min-h-0 min-w-0 grid grid-rows-[1fr_auto] border-l-2 border-gray-200">
+      <div className="min-h-0 min-w-0">
+        <Editor 
+          defaultLanguage="python" 
+          defaultValue={DEFAULT_CODE}
+          options={OPTIONS}
+          onChange={(value) => setCode(value)}
+        />
+      </div>
+      
+      <Button onClick={() => onCodeSubmit(code)} text="Submit code" />
     </div>
   )
 }

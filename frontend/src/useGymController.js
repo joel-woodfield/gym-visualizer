@@ -44,7 +44,7 @@ export default function useGymController() {
     wsConnected,
     stepData,
     step: () => wsRef.current.send({ type: "step" }),
-    play: () => wsRef.current.send({ type: "play" }),
+    play: (fps) => wsRef.current.send({ type: "play", fps: fps }),
     pause: () => wsRef.current.send({ type: "pause" }),
     reset: () => wsRef.current.send({ type: "reset" }),
     submitPolicy: (policyProgram) => wsRef.current.send({ type: "submitPolicy", data: policyProgram }),
