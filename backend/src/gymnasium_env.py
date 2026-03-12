@@ -3,6 +3,8 @@ from io import BytesIO
 from typing import Any, SupportsFloat, cast
 
 import gymnasium as gym
+import minigrid
+import minigrid.wrappers
 import numpy as np
 from PIL import Image
 
@@ -14,6 +16,95 @@ DEFAULT_POLICY = """import numpy as np
 def policy(obs: np.ndarray, num_actions: int) -> int:
     action = np.random.randint(0, num_actions)
     return action"""
+
+
+class FlatCurrentReducedWrapper(gym.ObservationWrapper):
+    """
+    Encode mission strings using a one-hot scheme,
+    and combine these with observed images into one flat array.
+
+    This wrapper is not applicable to BabyAI environments, given that these have their own language component.
+
+    Example:
+        >>> import gymnasium as gym
+        >>> import matplotlib.pyplot as plt
+        >>> from minigrid.wrappers import FlatObsWrapper
+        >>> env = gym.make("MiniGrid-LavaCrossingS11N5-v0")
+        >>> env_obs = FlatObsWrapper(env)
+        >>> obs, _ = env_obs.reset()
+        >>> obs.shape
+        (2835,)
+    """
+
+    def __init__(self, env, maxStrLen=96):
+        super().__init__(env)
+
+        imgSpace = env.observation_space.spaces["image"]
+        
+        self.select_indices = [0,1,2,8,9]
+        # Define a mapping from environment names to select indices
+        env_select_indices = {
+            "DistShift": [0, 1, 2, 8, 9], # left, right, forward
+            "LavaGap": [0, 1, 2, 8, 9], # left, right, forward
+            "LavaCrossing": [0, 1, 2, 8, 9], # left, right, forward
+            
+            "SimpleCrossing": [0, 1, 2, 8], # left, right, forward
+            "FourRooms": [0, 1, 2, 8], # left, right, forward
+            "Empty": [0, 1, 2, 8], # left, right, forward
+            
+            "MultiRoom": [0, 1, 2, 4, 8, 17, 18], # left, right, forward, toggle
+
+            "Dynamic-Obstacles": [0, 1, 2, 4, 6, 8], # left, right, forward
+
+            "Unlock": [0, 1, 2, 4, 5, 8, 17, 18, 19], # left, right, forward, toggle #No pickup key
+            "UnlockPickup": [0, 1, 2, 4, 5, 7, 8, 17, 18, 19], # left, right, forward, pickup, toggle #No pickup key
+
+            "DoorKey": [0, 1, 2, 4, 5, 8, 17, 18, 19], # left, right, forward, pickup, toggle #Pickup key
+
+            "GoToDoor": [0, 1, 2, 4, 8, 11, 12, 13, 14, 15, 16], # left, right, forward, done
+
+            "RedBlueDoors": [0, 1, 2, 4, 8, 11, 13, 17, 18], # left, right, forward, toggle
+            "PutNear": [0, 1, 2, 4, 8, 17, 18], # left, right, forward, pickup, drop 
+        }
+
+        # Get the environment name
+        env_name = env.spec.id
+        
+        env_identifier = env_name
+        for key in env_select_indices.keys():
+            if key in env_name:
+                env_identifier = key     
+
+        # Set select_indices based on the environment name
+        if env_identifier in env_select_indices:
+            self.select_indices = env_select_indices[env_identifier]
+            print(f"Environment {env_identifier} with Observations {self.select_indices}")
+        else:
+            raise ValueError(f"Environment {env_identifier} is not supported by this wrapper.")
+
+        
+        imgSize = imgSpace.shape[0] * imgSpace.shape[1] * len(self.select_indices) #reduce(operator.mul, imgSpace.shape, 1)
+
+        self.observation_space = gym.spaces.Box(
+            low=0,
+            high=255,
+            shape=(imgSize,),
+            dtype="float32",
+        )
+
+        self.cachedStr: str = None
+
+    def observation(self, obs):
+        image = obs["image"]
+        mission = obs["mission"]
+        #print('image.shape', image.shape)
+        #print('image.flatten().shape', image.flatten().shape)
+        obs = image[:,:,self.select_indices].flatten().astype(np.float32)
+        obs = obs * 2 - 1 # convert to range -1,1 instead of 0,1
+
+        #obs =
+        # print('obs.shape', obs.shape)
+        return obs
 
 
 class PolicyError(Exception):
@@ -49,6 +140,11 @@ class GymnasiumEnv:
             self._env = gym.make(env_id, render_mode="rgb_array")
         except Exception as e:
             raise EnvironmentError(f"Error initializing environment with id '{env_id}': {e}")
+
+        if env_id.startswith("MiniGrid"):
+            self._env = minigrid.wrappers.ViewSizeWrapper(self._env, agent_view_size=3)
+            self._env = minigrid.wrappers.OneHotPartialObsWrapper(self._env)
+            self._env = FlatCurrentReducedWrapper(self._env)
 
         self._current_step = 0
         self._episode_return = 0.
